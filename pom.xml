@@ -32,7 +32,7 @@
 
    <groupId>com.onevizion</groupId>
    <artifactId>hikaricp</artifactId>
-   <version>3.4.6-SNAPSHOT</version>
+   <version>3.4.6</version>
    <packaging>bundle</packaging>
 
    <name>HikariCP</name>
