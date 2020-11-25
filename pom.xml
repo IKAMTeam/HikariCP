@@ -30,9 +30,9 @@
       <junit.version>4.12</junit.version>
    </properties>
 
-   <groupId>com.zaxxer</groupId>
+   <groupId>com.onevizion</groupId>
    <artifactId>HikariCP</artifactId>
-   <version>3.4.6-SNAPSHOT</version>
+   <version>3.4.5</version>
    <packaging>bundle</packaging>
 
    <name>HikariCP</name>
