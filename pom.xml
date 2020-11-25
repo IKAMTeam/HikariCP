@@ -31,25 +31,36 @@
    </properties>
 
    <groupId>com.onevizion</groupId>
-   <artifactId>HikariCP</artifactId>
-   <version>3.4.5</version>
+   <artifactId>hikaricp</artifactId>
+   <version>3.4.6-SNAPSHOT</version>
    <packaging>bundle</packaging>
 
    <name>HikariCP</name>
    <description>Ultimate JDBC Connection Pool</description>
-   <url>https://github.com/brettwooldridge/HikariCP</url>
+   <url>https://github.com/IKAMTeam/HikariCP</url>
 
    <organization>
-      <name>Zaxxer.com</name>
-      <url>https://github.com/brettwooldridge</url>
+      <name>OneVizion, Inc.</name>
+      <url>https://www.onevizion.com</url>
    </organization>
 
    <scm>
-      <connection>scm:git:git@github.com:brettwooldridge/HikariCP.git</connection>
-      <developerConnection>scm:git:git@github.com:brettwooldridge/HikariCP.git</developerConnection>
-      <url>git@github.com:brettwooldridge/HikariCP.git</url>
+      <connection>scm:git:git@github.com:IKAMTeam/HikariCP.git</connection>
+      <developerConnection>scm:git:git@github.com:IKAMTeam/HikariCP.git</developerConnection>
+      <url>git@github.com:IKAMTeam/HikariCP.git</url>
       <tag>HEAD</tag>
    </scm>
+
+   <distributionManagement>
+      <snapshotRepository>
+         <id>github-snapshots</id>
+         <url>https://maven.pkg.github.com/IKAMTeam/HikariCP</url>
+      </snapshotRepository>
+      <repository>
+         <id>github-releases</id>
+         <url>https://maven.pkg.github.com/IKAMTeam/HikariCP</url>
+      </repository>
+   </distributionManagement>
 
    <licenses>
       <license>
@@ -63,6 +74,9 @@
       <developer>
          <name>Brett Wooldridge</name>
          <email>brett.wooldridge@gmail.com</email>
+      </developer>
+      <developer>
+         <name>OneVizion, Inc.</name>
       </developer>
    </developers>
 
