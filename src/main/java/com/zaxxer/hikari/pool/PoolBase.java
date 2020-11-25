@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2020 OneVizion, Inc. All rights reserved.
  * Copyright (C) 2013, 2014 Brett Wooldridge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -184,6 +185,32 @@ abstract class PoolBase
          logger.warn("{} - Failed to validate connection {} ({}). Possibly consider using a shorter maxLifetime value.",
                      poolName, connection, e.getMessage());
          return false;
+      }
+   }
+
+   void executeOnBorrowSqlQuery(final Connection connection)
+   {
+      try {
+         try {
+            setNetworkTimeout(connection, validationTimeout);
+
+            final int validationSeconds = (int) Math.max(1000L, validationTimeout) / 1000;
+
+            try (Statement statement = connection.createStatement()) {
+               if (isNetworkTimeoutSupported != TRUE) {
+                  setQueryTimeout(statement, validationSeconds);
+               }
+
+               statement.execute(config.getOnBorrowConnectionSqlQueryProvider().getSqlQuery());
+            }
+         }
+         finally {
+            setNetworkTimeout(connection, networkTimeout);
+         }
+      }
+      catch (Exception e) {
+         lastConnectionFailure.set(e);
+         logger.warn("{} - Failed to execute on borrow sql {} ({}).", poolName, connection, e.getMessage());
       }
    }
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2020 OneVizion, Inc. All rights reserved.
  * Copyright (C) 2013, 2014 Brett Wooldridge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -98,6 +99,8 @@ public class HikariConfig implements HikariConfigMXBean
    private Object metricRegistry;
    private Object healthCheckRegistry;
    private Properties healthCheckProperties;
+
+   private OnBorrowConnectionSqlQueryProvider onBorrowConnectionSqlQueryProvider;
 
    private volatile boolean sealed;
 
@@ -905,6 +908,15 @@ public class HikariConfig implements HikariConfigMXBean
    {
       checkIfSealed();
       this.threadFactory = threadFactory;
+   }
+
+   public OnBorrowConnectionSqlQueryProvider getOnBorrowConnectionSqlQueryProvider() {
+      return onBorrowConnectionSqlQueryProvider;
+   }
+
+   public void setOnBorrowConnectionSqlQueryProvider(OnBorrowConnectionSqlQueryProvider onBorrowConnectionSqlQueryProvider) {
+      checkIfSealed();
+      this.onBorrowConnectionSqlQueryProvider = onBorrowConnectionSqlQueryProvider;
    }
 
    void seal()

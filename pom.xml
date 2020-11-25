@@ -325,8 +325,8 @@
             </configuration>
          </plugin>
 
-         <plugin>
-            <!-- The Docker Maven plugin is used to create docker image with the fat jar -->
+         <!--<plugin> Commented to prevent starting docker during test phase
+            &lt;!&ndash; The Docker Maven plugin is used to create docker image with the fat jar &ndash;&gt;
             <groupId>io.fabric8</groupId>
             <artifactId>docker-maven-plugin</artifactId>
             <version>${docker.maven.plugin.fabric8.version}</version>
@@ -334,7 +334,7 @@
                <logDate>default</logDate>
                <autoPull>true</autoPull>
                <images>
-                  <!-- Postgres Image is used 'as-is' and iked into the service s linimage -->
+                  &lt;!&ndash; Postgres Image is used 'as-is' and iked into the service s linimage &ndash;&gt;
                   <image>
                      <alias>db</alias>
                      <name>postgres:11</name>
@@ -355,7 +355,7 @@
                </images>
             </configuration>
 
-            <!-- Hooking into the lifecycle -->
+            &lt;!&ndash; Hooking into the lifecycle &ndash;&gt;
             <executions>
                <execution>
                   <id>start</id>
@@ -373,7 +373,7 @@
                   </goals>
                </execution>
             </executions>
-         </plugin>
+         </plugin>-->
 
          <plugin>
             <groupId>org.jacoco</groupId>
@@ -515,8 +515,6 @@
                <configuration>
                   <!-- Sets the VM argument line used when unit tests are run. -->
                   <argLine>${surefireArgLine} ${sureFireOptions11}</argLine>
-                  <!-- Skips unit tests if the value of skip.unit.tests property is true -->
-                  <skipTests>${skip.unit.tests}</skipTests>
                   <reuseForks>${sureFireForks11}</reuseForks>
                </configuration>
             </plugin>
