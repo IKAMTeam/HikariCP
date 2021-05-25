@@ -46,7 +46,7 @@ import static com.zaxxer.hikari.util.UtilityElf.safeIsAssignableFrom;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-@SuppressWarnings({"SameParameterValue", "unused"})
+@SuppressWarnings({"SameParameterValue"})
 public class HikariConfig implements HikariConfigMXBean
 {
    private static final Logger LOGGER = LoggerFactory.getLogger(HikariConfig.class);
@@ -54,8 +54,10 @@ public class HikariConfig implements HikariConfigMXBean
    private static final char[] ID_CHARACTERS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
    private static final long CONNECTION_TIMEOUT = SECONDS.toMillis(30);
    private static final long VALIDATION_TIMEOUT = SECONDS.toMillis(5);
+   private static final long SOFT_TIMEOUT_FLOOR = Long.getLong("com.zaxxer.hikari.timeoutMs.floor", 250L);
    private static final long IDLE_TIMEOUT = MINUTES.toMillis(10);
    private static final long MAX_LIFETIME = MINUTES.toMillis(30);
+   private static final long DEFAULT_KEEPALIVE_TIME = 0L;
    private static final int DEFAULT_POOL_SIZE = 10;
 
    private static boolean unitTest = false;
@@ -100,6 +102,8 @@ public class HikariConfig implements HikariConfigMXBean
    private Object healthCheckRegistry;
    private Properties healthCheckProperties;
 
+   private long keepaliveTime;
+
    private OnBorrowConnectionSqlQueryProvider onBorrowConnectionSqlQueryProvider;
 
    private volatile boolean sealed;
@@ -120,6 +124,7 @@ public class HikariConfig implements HikariConfigMXBean
       idleTimeout = IDLE_TIMEOUT;
       initializationFailTimeout = 1;
       isAutoCommit = true;
+      keepaliveTime = DEFAULT_KEEPALIVE_TIME;
 
       String systemProp = System.getProperty("hikaricp.configurationFile");
       if (systemProp != null) {
@@ -185,8 +190,8 @@ public class HikariConfig implements HikariConfigMXBean
       if (connectionTimeoutMs == 0) {
          this.connectionTimeout = Integer.MAX_VALUE;
       }
-      else if (connectionTimeoutMs < 250) {
-         throw new IllegalArgumentException("connectionTimeout cannot be less than 250ms");
+      else if (connectionTimeoutMs < SOFT_TIMEOUT_FLOOR) {
+         throw new IllegalArgumentException("connectionTimeout cannot be less than " + SOFT_TIMEOUT_FLOOR + "ms");
       }
       else {
          this.connectionTimeout = connectionTimeoutMs;
@@ -323,8 +328,8 @@ public class HikariConfig implements HikariConfigMXBean
    @Override
    public void setValidationTimeout(long validationTimeoutMs)
    {
-      if (validationTimeoutMs < 250) {
-         throw new IllegalArgumentException("validationTimeout cannot be less than 250ms");
+      if (validationTimeoutMs < SOFT_TIMEOUT_FLOOR) {
+         throw new IllegalArgumentException("validationTimeout cannot be less than " + SOFT_TIMEOUT_FLOOR + "ms");
       }
 
       this.validationTimeout = validationTimeoutMs;
@@ -642,7 +647,7 @@ public class HikariConfig implements HikariConfigMXBean
    }
 
    /**
-    * Get the MetricRegistry instance to used for registration of metrics used by HikariCP.  Default is {@code null}.
+    * Get the MetricRegistry instance to use for registration of metrics used by HikariCP.  Default is {@code null}.
     *
     * @return the MetricRegistry instance that will be used
     */
@@ -721,6 +726,26 @@ public class HikariConfig implements HikariConfigMXBean
    {
       checkIfSealed();
       healthCheckProperties.setProperty(key, value);
+   }
+
+   /**
+    * This property controls the keepalive interval for a connection in the pool. An in-use connection will never be
+    * tested by the keepalive thread, only when it is idle will it be tested.
+    *
+    * @return the interval in which connections will be tested for aliveness, thus keeping them alive by the act of checking. Value is in milliseconds, default is 0 (disabled).
+    */
+   public long getKeepaliveTime() {
+      return keepaliveTime;
+   }
+
+   /**
+    * This property controls the keepalive interval for a connection in the pool. An in-use connection will never be
+    * tested by the keepalive thread, only when it is idle will it be tested.
+    *
+    * @param keepaliveTimeMs the interval in which connections will be tested for aliveness, thus keeping them alive by the act of checking. Value is in milliseconds, default is 0 (disabled).
+    */
+   public void setKeepaliveTime(long keepaliveTimeMs) {
+      this.keepaliveTime = keepaliveTimeMs;
    }
 
    /**
@@ -1030,6 +1055,18 @@ public class HikariConfig implements HikariConfigMXBean
          maxLifetime = MAX_LIFETIME;
       }
 
+      // keepalive time must larger then 30 seconds
+      if (keepaliveTime != 0 && keepaliveTime < SECONDS.toMillis(30)) {
+         LOGGER.warn("{} - keepaliveTime is less than 30000ms, disabling it.", poolName);
+         keepaliveTime = DEFAULT_KEEPALIVE_TIME;
+      }
+
+      // keepalive time must be less than maxLifetime (if maxLifetime is enabled)
+      if (keepaliveTime != 0 && maxLifetime != 0 && keepaliveTime >= maxLifetime) {
+         LOGGER.warn("{} - keepaliveTime is greater than or equal to maxLifetime, disabling it.", poolName);
+         keepaliveTime = DEFAULT_KEEPALIVE_TIME;
+      }
+
       if (leakDetectionThreshold > 0 && !unitTest) {
          if (leakDetectionThreshold < SECONDS.toMillis(2) || (leakDetectionThreshold > maxLifetime && maxLifetime > 0)) {
             LOGGER.warn("{} - leakDetectionThreshold is less than 2000ms or more than maxLifetime, disabling it.", poolName);
@@ -1037,13 +1074,13 @@ public class HikariConfig implements HikariConfigMXBean
          }
       }
 
-      if (connectionTimeout < 250) {
-         LOGGER.warn("{} - connectionTimeout is less than 250ms, setting to {}ms.", poolName, CONNECTION_TIMEOUT);
+      if (connectionTimeout < SOFT_TIMEOUT_FLOOR) {
+         LOGGER.warn("{} - connectionTimeout is less than {}ms, setting to {}ms.", poolName, SOFT_TIMEOUT_FLOOR, CONNECTION_TIMEOUT);
          connectionTimeout = CONNECTION_TIMEOUT;
       }
 
-      if (validationTimeout < 250) {
-         LOGGER.warn("{} - validationTimeout is less than 250ms, setting to {}ms.", poolName, VALIDATION_TIMEOUT);
+      if (validationTimeout < SOFT_TIMEOUT_FLOOR) {
+         LOGGER.warn("{} - validationTimeout is less than {}ms, setting to {}ms.", poolName, SOFT_TIMEOUT_FLOOR, VALIDATION_TIMEOUT);
          validationTimeout = VALIDATION_TIMEOUT;
       }
 
@@ -1107,7 +1144,7 @@ public class HikariConfig implements HikariConfigMXBean
             else if (value == null) {
                value = "none";
             }
-            LOGGER.debug((prop + "................................................").substring(0, 32) + value);
+            LOGGER.debug("{}{}", (prop + "................................................".substring(0, 32)), value);
          }
          catch (Exception e) {
             // continue
