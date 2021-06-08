@@ -49,7 +49,7 @@ final class PoolEntry implements IConcurrentBagEntry
    private volatile ScheduledFuture<?> endOfLife;
    private volatile ScheduledFuture<?> keepalive;
 
-   private final FastList<Statement> openStatements;
+   protected final FastList<Statement> openStatements;
    private final HikariPool hikariPool;
 
    private final boolean isReadOnly;
