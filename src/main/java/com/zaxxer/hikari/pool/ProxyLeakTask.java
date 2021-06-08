@@ -20,9 +20,6 @@ package com.zaxxer.hikari.pool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +75,8 @@ class ProxyLeakTask implements Runnable
 
    /** {@inheritDoc} */
    @Override
-   public void run() {
+   public void run()
+   {
       isLeaked = true;
 
       final StackTraceElement[] stackTrace = exception.getStackTrace();
@@ -89,20 +87,14 @@ class ProxyLeakTask implements Runnable
       LOGGER.warn("Connection leak detection triggered for {} on thread {}, stack trace follows", connectionName, threadName, exception);
 
       poolEntry.markEvicted();
-
-      for (Statement st : poolEntry.openStatements) {
-         try {
-            st.cancel();
-            st.close();
-         } catch (SQLException e) {
-            e.printStackTrace();
-         }
-      }
+      poolEntry.closeStatements();
       poolEntry.evict("Connection exceeds leak threshold");
+      poolEntry = null;
    }
 
    void cancel()
    {
+      poolEntry = null;
       scheduledFuture.cancel(false);
       if (isLeaked) {
          LOGGER.info("Previously reported leaked connection {} on thread {} was returned to the pool (unleaked)", connectionName, threadName);

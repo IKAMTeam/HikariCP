@@ -49,7 +49,7 @@ final class PoolEntry implements IConcurrentBagEntry
    private volatile ScheduledFuture<?> endOfLife;
    private volatile ScheduledFuture<?> keepalive;
 
-   protected final FastList<Statement> openStatements;
+   private final FastList<Statement> openStatements;
    private final HikariPool hikariPool;
 
    private final boolean isReadOnly;
@@ -190,6 +190,18 @@ final class PoolEntry implements IConcurrentBagEntry
       endOfLife = null;
       keepalive = null;
       return con;
+   }
+
+   synchronized void closeStatements()
+   {
+      for (Statement st : openStatements) {
+         try {
+            st.cancel();
+            st.close();
+         } catch (SQLException e) {
+            LOGGER.warn("Error during closing statement:", e);
+         }
+      }
    }
 
    private String stateToString()
