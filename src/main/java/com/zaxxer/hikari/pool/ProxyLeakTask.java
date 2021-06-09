@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 OneVizion, Inc. All rights reserved.
  * Copyright (C) 2013, 2014 Brett Wooldridge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +17,12 @@
 
 package com.zaxxer.hikari.pool;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A Runnable that is scheduled in the future to report leaks.  The ScheduledFuture is
@@ -37,8 +38,9 @@ class ProxyLeakTask implements Runnable
    private ScheduledFuture<?> scheduledFuture;
    private String connectionName;
    private Exception exception;
-   private String threadName; 
+   private String threadName;
    private boolean isLeaked;
+   private PoolEntry poolEntry;
 
    static
    {
@@ -59,6 +61,7 @@ class ProxyLeakTask implements Runnable
       this.exception = new Exception("Apparent connection leak detected");
       this.threadName = Thread.currentThread().getName();
       this.connectionName = poolEntry.connection.toString();
+      this.poolEntry = poolEntry;
    }
 
    private ProxyLeakTask()
@@ -76,16 +79,22 @@ class ProxyLeakTask implements Runnable
    {
       isLeaked = true;
 
-      final StackTraceElement[] stackTrace = exception.getStackTrace(); 
+      final StackTraceElement[] stackTrace = exception.getStackTrace();
       final StackTraceElement[] trace = new StackTraceElement[stackTrace.length - 5];
       System.arraycopy(stackTrace, 5, trace, 0, trace.length);
 
       exception.setStackTrace(trace);
       LOGGER.warn("Connection leak detection triggered for {} on thread {}, stack trace follows", connectionName, threadName, exception);
+
+      poolEntry.markEvicted();
+      poolEntry.closeStatements();
+      poolEntry.evict("Connection exceeds leak threshold");
+      poolEntry = null;
    }
 
    void cancel()
    {
+      poolEntry = null;
       scheduledFuture.cancel(false);
       if (isLeaked) {
          LOGGER.info("Previously reported leaked connection {} on thread {} was returned to the pool (unleaked)", connectionName, threadName);
