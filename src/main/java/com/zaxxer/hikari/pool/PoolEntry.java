@@ -1,4 +1,5 @@
 /*
+ * Copyright (C) 2021 OneVizion, Inc. All rights reserved.
  * Copyright (C) 2014 Brett Wooldridge
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -190,6 +191,18 @@ final class PoolEntry implements IConcurrentBagEntry
       endOfLife = null;
       keepalive = null;
       return con;
+   }
+
+   synchronized void closeStatements()
+   {
+      for (Statement st : openStatements) {
+         try {
+            st.cancel();
+            st.close();
+         } catch (SQLException e) {
+            LOGGER.warn("Error during closing statement:", e);
+         }
+      }
    }
 
    private String stateToString()

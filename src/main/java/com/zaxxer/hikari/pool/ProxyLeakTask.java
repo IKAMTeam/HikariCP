@@ -87,11 +87,14 @@ class ProxyLeakTask implements Runnable
       LOGGER.warn("Connection leak detection triggered for {} on thread {}, stack trace follows", connectionName, threadName, exception);
 
       poolEntry.markEvicted();
+      poolEntry.closeStatements();
       poolEntry.evict("Connection exceeds leak threshold");
+      poolEntry = null;
    }
 
    void cancel()
    {
+      poolEntry = null;
       scheduledFuture.cancel(false);
       if (isLeaked) {
          LOGGER.info("Previously reported leaked connection {} on thread {} was returned to the pool (unleaked)", connectionName, threadName);
