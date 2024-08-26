@@ -17,12 +17,12 @@
 
 package com.zaxxer.hikari.pool;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A Runnable that is scheduled in the future to report leaks.  The ScheduledFuture is
@@ -79,8 +79,9 @@ class ProxyLeakTask implements Runnable
    {
       isLeaked = true;
 
-      final StackTraceElement[] stackTrace = exception.getStackTrace();
-      final StackTraceElement[] trace = new StackTraceElement[stackTrace.length - 5];
+      final var stackTrace = exception.getStackTrace();
+      final var trace = new StackTraceElement[stackTrace.length - 5];
+
       System.arraycopy(stackTrace, 5, trace, 0, trace.length);
 
       exception.setStackTrace(trace);
