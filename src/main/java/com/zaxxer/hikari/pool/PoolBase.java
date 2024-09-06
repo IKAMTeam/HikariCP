@@ -184,30 +184,35 @@ abstract class PoolBase
       }
    }
 
-   void executeOnBorrowSqlQuery(final Connection connection)
-   {
-      try {
-         try {
-            setNetworkTimeout(connection, validationTimeout);
+   boolean executeOnBorrowSqlQuery(final Connection connection) {
+       if (config.getOnBorrowConnectionSqlQueryProvider() == null) {
+           return true;
+       }
 
-            final int validationSeconds = (int) Math.max(1000L, validationTimeout) / 1000;
+       boolean executionSuccess = true;
+       try {
+           try {
+               setNetworkTimeout(connection, validationTimeout);
 
-            try (Statement statement = connection.createStatement()) {
-               if (isNetworkTimeoutSupported != TRUE) {
-                  setQueryTimeout(statement, validationSeconds);
+               final int validationSeconds = (int) Math.max(1000L, validationTimeout) / 1000;
+
+               try (Statement statement = connection.createStatement()) {
+                   if (isNetworkTimeoutSupported != TRUE) {
+                       setQueryTimeout(statement, validationSeconds);
+                   }
+
+                   statement.execute(config.getOnBorrowConnectionSqlQueryProvider().getSqlQuery());
                }
+           } finally {
+               setNetworkTimeout(connection, networkTimeout);
+           }
+       } catch (Exception e) {
+           lastConnectionFailure.set(e);
+           executionSuccess = false;
+           logger.warn("{} - Failed to execute on borrow sql {} ({}).", poolName, connection, e.getMessage());
+       }
 
-               statement.execute(config.getOnBorrowConnectionSqlQueryProvider().getSqlQuery());
-            }
-         }
-         finally {
-            setNetworkTimeout(connection, networkTimeout);
-         }
-      }
-      catch (Exception e) {
-         lastConnectionFailure.set(e);
-         logger.warn("{} - Failed to execute on borrow sql {} ({}).", poolName, connection, e.getMessage());
-      }
+       return executionSuccess;
    }
 
    Exception getLastConnectionFailure()

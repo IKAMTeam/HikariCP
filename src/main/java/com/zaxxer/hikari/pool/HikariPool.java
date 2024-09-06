@@ -160,14 +160,13 @@ public final class HikariPool extends PoolBase implements HikariPoolMXBean, IBag
             }
 
             final var now = currentTime();
-            if (poolEntry.isMarkedEvicted() || (elapsedMillis(poolEntry.lastAccessed, now) > aliveBypassWindowMs && isConnectionDead(poolEntry.connection))) {
+            if (poolEntry.isMarkedEvicted()
+                    || (elapsedMillis(poolEntry.lastAccessed, now) > aliveBypassWindowMs && isConnectionDead(poolEntry.connection))
+                    || !executeOnBorrowSqlQuery(poolEntry.connection)) {
                closeConnection(poolEntry, poolEntry.isMarkedEvicted() ? EVICTED_CONNECTION_MESSAGE : DEAD_CONNECTION_MESSAGE);
                timeout = hardTimeout - elapsedMillis(startTime);
             }
             else {
-               if (config.getOnBorrowConnectionSqlQueryProvider() != null) {
-                  executeOnBorrowSqlQuery(poolEntry.connection);
-               }
                metricsTracker.recordBorrowStats(poolEntry, startTime);
                return poolEntry.createProxyConnection(leakTaskFactory.schedule(poolEntry));
             }
