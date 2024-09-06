@@ -16,18 +16,16 @@
 
 package com.zaxxer.hikari.metrics.dropwizard;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Properties;
-import java.util.SortedMap;
-import java.util.concurrent.TimeUnit;
-
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.health.HealthCheck;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Provides Dropwizard HealthChecks.  Two health checks are provided:
@@ -55,18 +53,21 @@ public final class CodahaleHealthChecker
     */
    public static void registerHealthChecks(final HikariPool pool, final HikariConfig hikariConfig, final HealthCheckRegistry registry)
    {
-      final Properties healthCheckProperties = hikariConfig.getHealthCheckProperties();
-      final MetricRegistry metricRegistry = (MetricRegistry) hikariConfig.getMetricRegistry();
+      final var healthCheckProperties = hikariConfig.getHealthCheckProperties();
 
-      final long checkTimeoutMs = Long.parseLong(healthCheckProperties.getProperty("connectivityCheckTimeoutMs", String.valueOf(hikariConfig.getConnectionTimeout())));
+      final var checkTimeoutMs = Long.parseLong(healthCheckProperties.getProperty("connectivityCheckTimeoutMs", String.valueOf(hikariConfig.getConnectionTimeout())));
       registry.register(MetricRegistry.name(hikariConfig.getPoolName(), "pool", "ConnectivityCheck"), new ConnectivityHealthCheck(pool, checkTimeoutMs));
 
-      final long expected99thPercentile = Long.parseLong(healthCheckProperties.getProperty("expected99thPercentileMs", "0"));
-      if (metricRegistry != null && expected99thPercentile > 0) {
-         SortedMap<String,Timer> timers = metricRegistry.getTimers((name, metric) -> name.equals(MetricRegistry.name(hikariConfig.getPoolName(), "pool", "Wait")));
+      final var expected99thPercentile = Long.parseLong(healthCheckProperties.getProperty("expected99thPercentileMs", "0"));
+
+      final Object metricRegistryObj = hikariConfig.getMetricRegistry();
+
+      if (expected99thPercentile > 0 && metricRegistryObj instanceof MetricRegistry) {
+         final var metricRegistry = (MetricRegistry) metricRegistryObj;
+         var timers = metricRegistry.getTimers((name, metric) -> name.equals(MetricRegistry.name(hikariConfig.getPoolName(), "pool", "Wait")));
 
          if (!timers.isEmpty()) {
-            final Timer timer = timers.entrySet().iterator().next().getValue();
+            final var timer = timers.entrySet().iterator().next().getValue();
             registry.register(MetricRegistry.name(hikariConfig.getPoolName(), "pool", "Connection99Percent"), new Connection99Percent(timer, expected99thPercentile));
          }
       }
