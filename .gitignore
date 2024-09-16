@@ -1,5 +1,8 @@
 .classpath
 .project
+.metadata
+.settings
+*bin*
 
 target/
 dependency-reduced-pom.xml
@@ -17,8 +20,6 @@ dependency-reduced-pom.xml
 *.ipr
 
 .tm_*
-.classpath
-.project
 .idea/
 .gradle/
 out/

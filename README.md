@@ -5,6 +5,7 @@
 [![][license img]][license]
 [![][Maven Central img]][Maven Central]
 [![][Javadocs img]][Javadocs]
+[![][Librapay img]][Librapay]
 
 Fast, simple, reliable.  HikariCP is a "zero-overhead" production ready JDBC connection pool.  At roughly 130Kb, the library is very light.  Read about [how we do it here](https://github.com/brettwooldridge/HikariCP/wiki/Down-the-Rabbit-Hole).
 
@@ -31,29 +32,37 @@ Fast, simple, reliable.  HikariCP is a "zero-overhead" production ready JDBC con
 
 ### Artifacts
 
-_Java 8 thru 11 maven artifact:_
+_**Java 11+** maven artifact:_
 ```xml
-    <dependency>
-        <groupId>com.zaxxer</groupId>
-        <artifactId>HikariCP</artifactId>
-        <version>4.0.2</version>
-    </dependency>
+<dependency>
+   <groupId>com.zaxxer</groupId>
+   <artifactId>HikariCP</artifactId>
+   <version>5.0.1</version>
+</dependency>
+```
+_Java 8 maven artifact (*maintenance mode*):_
+```xml
+<dependency>
+   <groupId>com.zaxxer</groupId>
+   <artifactId>HikariCP</artifactId>
+   <version>4.0.3</version>
+</dependency>
 ```
 _Java 7 maven artifact (*maintenance mode*):_
 ```xml
-    <dependency>
-        <groupId>com.zaxxer</groupId>
-        <artifactId>HikariCP-java7</artifactId>
-        <version>2.4.13</version>
-    </dependency>
+<dependency>
+   <groupId>com.zaxxer</groupId>
+   <artifactId>HikariCP-java7</artifactId>
+   <version>2.4.13</version>
+</dependency>
 ```
 _Java 6 maven artifact (*maintenance mode*):_
 ```xml
-    <dependency>
-        <groupId>com.zaxxer</groupId>
-        <artifactId>HikariCP-java6</artifactId>
-        <version>2.3.13</version>
-    </dependency>
+<dependency>
+   <groupId>com.zaxxer</groupId>
+   <artifactId>HikariCP-java6</artifactId>
+   <version>2.3.13</version>
+</dependency>
 ```
 Or [download from here](http://search.maven.org/#search%7Cga%7C1%7Ccom.zaxxer.hikaricp).
 
@@ -92,7 +101,7 @@ AKA *"What you probably didn't know about connection pool sizing"*.  Watch a vid
 <br/>
 #### WIX Engineering Analysis
 <a href="https://www.wix.engineering/blog/how-does-hikaricp-compare-to-other-connection-pools"><img width="180" align="left" src="https://github.com/brettwooldridge/HikariCP/wiki/Wix-Engineering.png"></a>
-We'd like to thank the guys over at WIX for the unsolicited and deep write-up about HikariCP on their [engineering blog](https://www.wix.engineering/blog/how-does-hikaricp-compare-to-other-connection-pools).  Take a look if you have time.
+We'd like to thank the guys over at WIX for the unsolicited and deep write-up about HikariCP on their [engineering blog](https://www.wix.engineering/post/how-does-hikaricp-compare-to-other-connection-pools).  Take a look if you have time.
 <br/>
 <br/>
 <br/>
@@ -192,7 +201,7 @@ it from being timed out by the database or network infrastructure. This value mu
 against a given connection, that connection will be removed from the pool, "pinged", and then returned to the
 pool. The 'ping' is one of either: invocation of the JDBC4 `isValid()` method, or execution of the
 `connectionTestQuery`. Typically, the duration out-of-the-pool should be measured in single digit milliseconds
-or even sub-millisecond, and therefore should have little or no noticible performance impact. The minimum
+or even sub-millisecond, and therefore should have little or no noticeable performance impact. The minimum
 allowed value is 30000ms (30 seconds), but a value in the range of minutes is most desirable.
 *Default: 0 (disabled)*
 
@@ -466,6 +475,7 @@ Here is a list of JDBC *DataSource* classes for popular databases:
 |:---------------- |:------------ |:-------------------|
 | Apache Derby     | Derby        | org.apache.derby.jdbc.ClientDataSource |
 | Firebird         | Jaybird      | org.firebirdsql.ds.FBSimpleDataSource |
+| Google Spanner   | Spanner      | com.google.cloud.spanner.jdbc.JdbcDriver |
 | H2               | H2           | org.h2.jdbcx.JdbcDataSource |
 | HSQLDB           | HSQLDB       | org.hsqldb.jdbc.JDBCDataSource |
 | IBM DB2          | IBM JCC      | com.ibm.db2.jcc.DB2SimpleDataSource |
@@ -529,8 +539,8 @@ YourKit supports open source projects with its full-featured Java Profiler.  Cli
 
 Please perform changes and submit pull requests from the ``dev`` branch instead of ``master``.  Please set your editor to use spaces instead of tabs, and adhere to the apparent style of the code you are editing.  The ``dev`` branch is always more "current" than the ``master`` if you are looking to live life on the edge.
 
-[Build Status]:https://travis-ci.org/brettwooldridge/HikariCP
-[Build Status img]:https://travis-ci.org/brettwooldridge/HikariCP.svg?branch=dev
+[Build Status]:https://circleci.com/gh/brettwooldridge/HikariCP
+[Build Status img]:https://circleci.com/gh/brettwooldridge/HikariCP/tree/dev.svg?style=shield
 
 [Coverage Status]:https://codecov.io/gh/brettwooldridge/HikariCP
 [Coverage Status img]:https://codecov.io/gh/brettwooldridge/HikariCP/branch/dev/graph/badge.svg
@@ -543,3 +553,6 @@ Please perform changes and submit pull requests from the ``dev`` branch instead 
 
 [Javadocs]:http://javadoc.io/doc/com.zaxxer/HikariCP
 [Javadocs img]:http://javadoc.io/badge/com.zaxxer/HikariCP.svg
+
+[Librapay]:https://liberapay.com/brettwooldridge
+[Librapay img]:https://img.shields.io/liberapay/patrons/brettwooldridge.svg?logo=liberapay
